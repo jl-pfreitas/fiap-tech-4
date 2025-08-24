@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 import plotly.express as px
+import base64
 
 # Carregando os dados 
 dados = pd.read_csv('base_ipea_2025_05_01.csv', sep=';', parse_dates=[0], decimal=',', thousands='.')
@@ -15,8 +16,33 @@ st.set_page_config(
 
 # Título Geral
 st.markdown("<h1 style='text-align: center; '> Preço (US$) bruto do barril de petróleo tipo Brent</h1>", unsafe_allow_html = True)
+st.markdown('---')
 
 # Definindo as páginas
+linkedin_url = "https://www.linkedin.com/in/joao-freitas-/"
+linkedin_icon_path = "linkedin.png"
+
+try:
+    # Codifica o arquivo em Base64
+    with open(linkedin_icon_path, "rb") as f:
+        imagem_encoded = base64.b64encode(f.read()).decode()
+
+    # Cria a string HTML com a imagem codificada e CSS para centralizar
+    html_code = f"""
+    <div style="display: flex; justify-content: center; align-items: center;">
+        <a href="{linkedin_url}" target="_blank">
+        <img src="data:image/png;base64,{imagem_encoded}" alt="linkedin" width="50">
+        </a>
+    </div>
+    """
+
+    st.sidebar.markdown(html_code, unsafe_allow_html=True)
+
+except FileNotFoundError:
+    st.sidebar.error("Erro: O arquivo da imagem não foi encontrado. Verifique se o caminho está correto.")
+
+st.sidebar.markdown('---')
+
 st.sidebar.image('Logo.png', width=200)
 paginas = ["Relatório", "Modelo de previsão", 'Dashboard']
 pagina_selecionada = st.sidebar.selectbox("Escolha uma página:", paginas)
@@ -124,6 +150,7 @@ elif pagina_selecionada == "Modelo de previsão":
             st.error('Valor inválido, favor inserir um número inteiro positivo')
 
     # Dados de referência
+    st.markdown('---')
     st.title('Preço dos últimos 5 dias úteis')
     dados_referencia = dados.iloc[1:]
     dados_referencia['Data'] = dados_referencia['Data'].dt.strftime('%d/%m/%Y')
@@ -153,6 +180,8 @@ elif pagina_selecionada == "Dashboard":
             min_value=dados['Data'].min().date(),
             max_value=dados['Data'].max().date()
         )
+
+    st.markdown('---')
 
     # Filtrar os dados com base nas datas
     dados['Data'] = pd.to_datetime(dados['Data'])
@@ -240,15 +269,18 @@ elif pagina_selecionada == "Dashboard":
                 <span>US$ {valor_ultimo:,.2f}</span>
             </div>
         """, unsafe_allow_html=True)
-            
+
+    st.markdown('---')
 
     # Gráfico de linhas
     fig_linha = px.line(dados_filtrados, x='Data', y='Preço - petróleo bruto - Brent (FOB)', title='Preço (US$) - Petróleo Bruto - Brent (FOB) ao longo do Tempo')
     st.plotly_chart(fig_linha)
+    st.markdown('---')
 
     # Boxplot
     fig_box = px.box(dados_filtrados, x='ano', y='Preço - petróleo bruto - Brent (FOB)', title='Boxplot do preço (US$) - Petróleo Bruto - Brent (FOB) por ano')
     st.plotly_chart(fig_box)
+    st.markdown('---')
 
     # Calcula a média anual com base nos dados filtrados
     media_anual = dados_filtrados.groupby('ano')['Preço - petróleo bruto - Brent (FOB)'].mean().reset_index()
